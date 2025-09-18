@@ -25,6 +25,6 @@ override.tf.json
 *.log
 
 # certs
-.certs/
+./certs/
 
 .DS_Store
