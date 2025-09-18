@@ -1,0 +1,30 @@
+# Terrafrom State files
+*.tfstate
+*.tfstate.*
+
+# Terraform directorys
+.terraform/
+.terraform.lock.hcl
+
+# Variables
+*.tfvars
+*.tfvars.json
+
+# privates
+*.auto.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# ssh
+*.pem
+*.key
+
+# log
+*.log
+
+# certs
+.certs/
+
+.DS_Store
