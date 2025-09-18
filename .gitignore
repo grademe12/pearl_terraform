@@ -20,11 +20,14 @@ override.tf.json
 # ssh
 *.pem
 *.key
+*.crt
+*.srl
+*.csr
 
 # log
 *.log
 
 # certs
-./certs/
+certs/
 
 .DS_Store
