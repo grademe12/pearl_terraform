@@ -208,8 +208,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👤 Author
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/grademe12)
-- Blog: [yourblog.com](https://woosupar.dev)
+- GitHub: [@grademe12](https://github.com/grademe12)
+- Blog: [woosupar.dev](https://woosupar.dev)
 
 ## 🙏 Acknowledgments
 
