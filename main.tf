@@ -59,13 +59,23 @@ resource "docker_container" "mosquitto" {
   image  = docker_image.mosquitto.image_id
   name = "mosquitto-terra"
   ports {
-    internal = 8884
+    internal = 8883
     external = 8884
   }
   volumes {
     host_path      = local_file.mosquitto_config.filename
     container_path = "/mosquitto/config/mosquitto.conf"
     read_only      = true
+  }
+  volumes {
+    host_path = "/home/woosupar/terraform/certs/pwfile"
+    container_path = "/mosquitto/pwfile"
+    read_only = false
+  }
+  volumes {
+    host_path = "/home/woosupar/terraform/certs"
+    container_path = "/mosquitto/certs"
+    read_only = true
   }
   networks_advanced {
     name = docker_network.IOT.name
@@ -77,7 +87,7 @@ resource "docker_container" "influxdb" {
   image  = docker_image.influxdb.image_id
   name = "influxdb-terra"
   ports {
-    internal = 8087
+    internal = 8086
     external = 8087
   }
   volumes {
@@ -103,8 +113,17 @@ resource "docker_container" "grafana" {
   name = "grafana-terra"
   user  = "472"
   ports {
-    internal = 3001
+    internal = 3000
     external = 3001
+  }
+  volumes {
+    host_path = "/home/woosupar/terraform/grafana/provisioning"
+    container_path = "/etc/grafana/provisioning"
+  }
+  volumes {
+    host_path = "/home/woosupar/terraform/grafana/dashboards"
+    container_path = "/var/lib/grafana/dashboards"
+    read_only = false
   }
   env = [
     "GF_SECURITY_ADMIN_USER=${var.grafana_user}",
