@@ -33,3 +33,11 @@
   token = "${influxdb_token}"
   organization = "${influxdb_org}"
   bucket = "${influxdb_bucket}"
+
+[[outputs.kinesis]]
+  region = "${region}"
+  streamname = "${stream_name}"
+  data_format = "json"
+  [outputs.kinesis.partition]
+    method = "static"
+    key = "default"

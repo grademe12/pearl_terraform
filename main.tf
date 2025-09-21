@@ -4,6 +4,11 @@ terraform {
       source  = "kreuzwerker/docker"
       version = "~> 3.0.1"
     }
+
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.92"
+    }
   }
 }
 
@@ -18,18 +23,21 @@ resource "docker_volume" "influxdb_data" {
 }
 
 resource "local_file" "telegraf_config" {
-  content = templatefile("${path.module}/conf/telegraf.conf.tpl", {
+  depends_on = [aws_kinesis_stream.kinesis]
+  content = templatefile("/home/woosupar/terraform/conf/telegraf.conf.tpl", {
     influxdb_token  = var.influxdb_token
     influxdb_org    = var.influxdb_org
     influxdb_bucket = var.influxdb_bucket
     username        = var.telegraf_username
     password        = var.telegraf_password
+    region          = "ap-northeast-2"
+    stream_name     = aws_kinesis_stream.kinesis.name
   })
-  filename = "${path.module}/conf/telegraf.conf"
+  filename = "/home/woosupar/terraform/conf/telegraf.conf"
 }
 
 resource "local_file" "mosquitto_config" {
-  content = templatefile("${path.module}/conf/mosquitto.conf.tpl", {
+  content = templatefile("/home/woosupar/terraform/conf/mosquitto.conf.tpl", {
     mosquitto_port = var.mosquitto_port
   })
   filename = "/home/woosupar/terraform/conf/mosquitto.conf"
@@ -56,8 +64,8 @@ resource "docker_image" "grafana" {
 }
 
 resource "docker_container" "mosquitto" {
-  image  = docker_image.mosquitto.image_id
-  name = "mosquitto-terra"
+  image = docker_image.mosquitto.image_id
+  name  = "mosquitto-terra"
   ports {
     internal = 8883
     external = 8884
@@ -68,14 +76,14 @@ resource "docker_container" "mosquitto" {
     read_only      = true
   }
   volumes {
-    host_path = "/home/woosupar/terraform/certs/pwfile"
+    host_path      = "/home/woosupar/terraform/certs/pwfile"
     container_path = "/mosquitto/pwfile"
-    read_only = false
+    read_only      = false
   }
   volumes {
-    host_path = "/home/woosupar/terraform/certs"
+    host_path      = "/home/woosupar/terraform/certs"
     container_path = "/mosquitto/certs"
-    read_only = true
+    read_only      = true
   }
   networks_advanced {
     name = docker_network.IOT.name
@@ -84,8 +92,8 @@ resource "docker_container" "mosquitto" {
 }
 
 resource "docker_container" "influxdb" {
-  image  = docker_image.influxdb.image_id
-  name = "influxdb-terra"
+  image = docker_image.influxdb.image_id
+  name  = "influxdb-terra"
   ports {
     internal = 8086
     external = 8087
@@ -109,21 +117,21 @@ resource "docker_container" "influxdb" {
 }
 
 resource "docker_container" "grafana" {
-  image  = docker_image.grafana.image_id
-  name = "grafana-terra"
+  image = docker_image.grafana.image_id
+  name  = "grafana-terra"
   user  = "472"
   ports {
     internal = 3000
     external = 3001
   }
   volumes {
-    host_path = "/home/woosupar/terraform/grafana/provisioning"
+    host_path      = "/home/woosupar/terraform/grafana/provisioning"
     container_path = "/etc/grafana/provisioning"
   }
   volumes {
-    host_path = "/home/woosupar/terraform/grafana/dashboards"
+    host_path      = "/home/woosupar/terraform/grafana/dashboards"
     container_path = "/var/lib/grafana/dashboards"
-    read_only = false
+    read_only      = false
   }
   env = [
     "GF_SECURITY_ADMIN_USER=${var.grafana_user}",
@@ -137,8 +145,8 @@ resource "docker_container" "grafana" {
 }
 
 resource "docker_container" "telegraf" {
-  image  = docker_image.telegraf.image_id
-  name = "telegraf-terra"
+  image = docker_image.telegraf.image_id
+  name  = "telegraf-terra"
   volumes {
     host_path      = "/home/woosupar/terraform/conf/telegraf.conf"
     container_path = "/etc/telegraf/telegraf.conf"
@@ -151,10 +159,16 @@ resource "docker_container" "telegraf" {
   }
   depends_on = [
     docker_container.influxdb,
-    docker_container.mosquitto
+    docker_container.mosquitto,
+    local_file.telegraf_config
   ]
   networks_advanced {
     name = docker_network.IOT.name
   }
+  env = [
+    "AWS_ACCESS_KEY_ID=${var.aws_access_key}",
+    "AWS_SECRET_ACCESS_KEY=${var.aws_secret_key}",
+    "AWS_REGION=ap-northeast-2"
+  ]
   restart = "unless-stopped"
 }

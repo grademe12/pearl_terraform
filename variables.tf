@@ -65,3 +65,17 @@ variable "grafana_password" {
   type        = string
   sensitive   = true
 }
+
+# aws access key
+
+variable "aws_access_key" {
+  description = "aws access key for woosupar"
+  type        = string
+  sensitive   = true
+}
+
+variable "aws_secret_key" {
+  description = "aws secret leu fpr woosupar"
+  type        = string
+  sensitive   = true
+}
