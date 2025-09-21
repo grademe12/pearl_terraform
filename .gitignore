@@ -30,4 +30,8 @@ override.tf.json
 # certs
 certs/
 
+# aws files
+aws/
+awscliv2.zip
+
 .DS_Store
