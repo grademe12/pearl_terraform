@@ -12,8 +12,14 @@ variable "influxdb_org" {
   sensitive   = false
 }
 
-variable "influxdb_bucket" {
-  description = "db bucket name"
+variable "influx_mqtt_bucket" {
+  description = "db bucket for mqtt name"
+  type        = string
+  sensitive   = false
+}
+
+variable "influx_opcua_bucket" {
+  description = "db bucket for opcua name"
   type        = string
   sensitive   = false
 }

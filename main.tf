@@ -14,6 +14,20 @@ terraform {
 
 provider "docker" {}
 
+resource "null_resource" "create_additional_bucket" {
+  depends_on = [docker_container.influxdb]
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      sleep 10
+      docker exec influxdb-terra influx bucket create \
+        -n ${var.influx_opcua_bucket} \
+        -o ${var.influxdb_org} \
+        -t ${var.influxdb_token} \
+      EOT
+  }
+}
+
 resource "docker_network" "IOT" {
   name = "IOT"
 }
@@ -25,13 +39,14 @@ resource "docker_volume" "influxdb_data" {
 resource "local_file" "telegraf_config" {
   depends_on = [aws_kinesis_stream.kinesis]
   content = templatefile("/home/woosupar/terraform/conf/telegraf.conf.tpl", {
-    influxdb_token  = var.influxdb_token
-    influxdb_org    = var.influxdb_org
-    influxdb_bucket = var.influxdb_bucket
-    username        = var.telegraf_username
-    password        = var.telegraf_password
-    region          = "ap-northeast-2"
-    stream_name     = aws_kinesis_stream.kinesis.name
+    influxdb_token      = var.influxdb_token
+    influxdb_org        = var.influxdb_org
+    influx_mqtt_bucket     = var.influx_mqtt_bucket
+    influx_opcua_bucket = var.influx_opcua_bucket
+    username            = var.telegraf_username
+    password            = var.telegraf_password
+    region              = "ap-northeast-2"
+    stream_name         = aws_kinesis_stream.kinesis.name
   })
   filename = "/home/woosupar/terraform/conf/telegraf.conf"
 }
@@ -107,7 +122,7 @@ resource "docker_container" "influxdb" {
     "DOCKER_INFLUXDB_INIT_USERNAME=${var.influxdb_username}",
     "DOCKER_INFLUXDB_INIT_PASSWORD=${var.influxdb_password}",
     "DOCKER_INFLUXDB_INIT_ORG=${var.influxdb_org}",
-    "DOCKER_INFLUXDB_INIT_BUCKET=${var.influxdb_bucket}",
+    "DOCKER_INFLUXDB_INIT_BUCKET=${var.influx_mqtt_bucket}",
     "DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${var.influxdb_token}"
   ]
   networks_advanced {

@@ -68,7 +68,7 @@ resource "aws_kinesis_firehose_delivery_stream" "kinesis_to_es3" {
   name        = "kinesis_to_es3"
   destination = "extended_s3"
 
-  depends_on = [ aws_iam_role_policy.firehose_policy ]
+  depends_on = [aws_iam_role_policy.firehose_policy]
 
   extended_s3_configuration {
     role_arn   = aws_iam_role.firehose_role.arn
